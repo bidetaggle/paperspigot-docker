@@ -1,3 +1,5 @@
+# import-db 
+mysql -u root -p minecraft_267223 < minecraft_267223.sql /inside the container
 # paperspigot-docker
 Easy to use and clean Docker image for running Paper Spigot servers in Docker containers using OpenJDK. 
 

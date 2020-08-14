@@ -24,18 +24,20 @@ services:
     image: mariadb
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: Dqg6KNU]Nn_7~F,4
-      MYSQL_DATABASE: mariadb
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: minecraft_267223
       MYSQL_HOST: localhost
     networks:
       - minecraft
-
+    volumes: 
+     - db:/var/lib/minecraftdb
 volumes:
   config: {}
   worlds: {}
   plugins: {}
   data: {}
   logs: {}
+  db : {}
 
 networks:
   minecraft: {}
