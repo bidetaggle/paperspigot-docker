@@ -14,7 +14,12 @@ services:
     ports:
       - 25565:25565
     volumes:
-      - server:/opt/minecraft
+      - config:/opt/minecraft/config
+      - worlds:/opt/minecraft/worlds
+      - plugins:/opt/minecraft/plugins
+      - data:/opt/minecraft/data
+      - logs:/opt/minecraft/logs
+
   db:
     container_name: minecraft-db
     image: mariadb
@@ -27,8 +32,13 @@ services:
       - minecraft
     volumes: 
      - db:/var/lib/minecraftdb
+
 volumes:
-  server: {}
+  config: {}
+  worlds: {}
+  plugins: {}
+  data: {}
+  logs: {}
   db: {}
 
 networks:

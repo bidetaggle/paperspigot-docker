@@ -55,7 +55,7 @@ FROM openjdk:${JAVA_VERSION} AS runtime
 ### Environment & ARGS ###
 ##########################
 ENV MINECRAFT_PATH=/opt/minecraft
-ENV SERVER_PATH=${MINECRAFT_PATH}/server
+ENV SERVER_PATH=${MINECRAFT_PATH}
 ENV DATA_PATH=${MINECRAFT_PATH}/data
 ENV LOGS_PATH=${MINECRAFT_PATH}/logs
 ENV CONFIG_PATH=${MINECRAFT_PATH}/config
@@ -125,11 +125,7 @@ RUN ln -s $PLUGINS_PATH $SERVER_PATH/plugins && \
 ###############
 ### Volumes ###
 ###############
-VOLUME "${CONFIG_PATH}"
-VOLUME "${WORLDS_PATH}"
-VOLUME "${PLUGINS_PATH}"
-VOLUME "${DATA_PATH}"
-VOLUME "${LOGS_PATH}"
+VOLUME "${SERVER_PATH}"
 
 #############################
 ### Expose minecraft port ###
@@ -143,4 +139,3 @@ ENTRYPOINT [ "./docker-entrypoint.sh" ]
 
 # Run Command
 CMD [ "serve" ]
-
