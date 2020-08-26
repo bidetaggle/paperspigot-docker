@@ -1,5 +1,3 @@
-# import-db 
-mysql -u root -p minecraft_267223 < minecraft_267223.sql /inside the container
 # paperspigot-docker
 Easy to use and clean Docker image for running Paper Spigot servers in Docker containers using OpenJDK. 
 
@@ -10,11 +8,7 @@ The easiest way for a quick start would be:
 ```bash
 docker run -it \
     -p 25565:25565 \
-    -v ~/minecraft/config:/opt/minecraft/config \
-    -v ~/minecraft/worlds:/opt/minecraft/worlds \
-    -v ~/minecraft/plugins:/opt/minecraft/plugins \
-    -v ~/minecraft/data:/opt/minecraft/data \
-    -v ~/minecraft/logs:/opt/minecraft/logs \
+    -v ~/minecraft/server-root:/opt/minecraft \
     felixklauke/paperspigot:1.16.1
 ```
 
@@ -44,7 +38,7 @@ The specific images are updated by hand. The 1.x-latest images will update at ni
 use the latest build.
 
 # Volumes
-There are five volumes which are used for:
+There is only one volume that contains the following basic folders:
 - Worlds
 - Plugins
 - Config files (paper.yml, bukkit.yml, spigot.yml, server.properties, commands.yml)
@@ -73,11 +67,7 @@ services:
     ports:
       - 25565:25565
     volumes:
-      - ./config:/opt/minecraft/config
-      - ./worlds:/opt/minecraft/worlds
-      - ./plugins:/opt/minecraft/plugins
-      - ./data:/opt/minecraft/data
-      - ./logs:/opt/minecraft/logs
+      - ./server-root:/opt/minecraft
 
 networks:
   minecraft: {}
@@ -101,23 +91,20 @@ services:
     ports:
       - 25565:25565
     volumes:
-      - minecraft-config:/opt/minecraft/config
-      - minecraft-worlds:/opt/minecraft/worlds
-      - minecraft-plugins:/opt/minecraft/plugins
-      - minecraft-data:/opt/minecraft/data
-      - minecraft-logs:/opt/minecraft/logs
+      - minecraft-server:/opt/minecraft
 
 volumes:
-  minecraft-config: {}
-  minecraft-worlds: {}
-  minecraft-plugins: {}
-  minecraft-data: {}
-  minecraft-logs: {}
+  minecraft-server: {}
 
 networks:
   minecraft: {}
 
 ```
+
+# import a sql file
+Copy your `minecraft_267223.sql` file into the running `db` container, get inside and import it with:
+
+`mysql -u root -p minecraft_267223 < minecraft_267223.sql`
 
 # See Also
 - [Docker CLI Reference: docker cp](https://docs.docker.com/engine/reference/commandline/cp/) - Copy files/folders between 
