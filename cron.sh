@@ -2,24 +2,24 @@
 
 docker-compose down
 
-MAX_NB_BACKUPS=2
-BACKUPS_DIRECTORY=backups
-
+NB_MAX_SNAPSHOTS=2
+SNAPSHOTS_DIRECTORY=snapshots
 DATE=$(date '+%Y-%m-%d-%Hh%Mm%S')
 
-echo -e "\033[41mStarting backup at $BACKUPS_DIRECTORY/$DATE \033[0m"
+echo "Starting backup..."
 
-mkdir $BACKUPS_DIRECTORY/$DATE
-cp -r /var/lib/docker/volumes/paperspigot-docker_worlds/_data $BACKUPS_DIRECTORY/$DATE/worlds
+cp -r /var/lib/docker/volumes/paperspigot-docker_server/_data/ $SNAPSHOTS_DIRECTORY/$DATE
 
-NB_BACKUPS=($BACKUPS_DIRECTORY/*)
-
-if [ ${#NB_BACKUPS[@]} -gt $MAX_NB_BACKUPS ] 
+if [ $? -eq 0 ]
 then
-    OLD_BACKUP=$(ls -F backups | head -n 1)
-    rm -rf $BACKUPS_DIRECTORY/$OLD_BACKUP
+    NB_SNAPSHOTS=($SNAPSHOTS_DIRECTORY/*)
+
+    if [ ${#NB_SNAPSHOTS[@]} -gt $NB_MAX_SNAPSHOTS ] ; then
+        rm -rf $SNAPSHOTS_DIRECTORY/$(ls -F $SNAPSHOTS_DIRECTORY | head -n 1)
+    fi
+
+    echo -e "\e[34mBackup done.\e[39m"
+    docker-compose up -d
+else
+    echo -e "\e[91mImpossible to backup, operation stalled"
 fi
-
-echo "Backup done."
-
-docker-compose up -d
