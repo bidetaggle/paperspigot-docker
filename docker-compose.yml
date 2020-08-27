@@ -7,23 +7,39 @@ services:
     stdin_open: true
     tty: true
     restart: always
+    environment:
+      - SHELL=/bin/bash
     networks:
       - minecraft
     ports:
       - 25565:25565
     volumes:
-      - minecraft-config:/opt/minecraft/config
-      - minecraft-worlds:/opt/minecraft/worlds
-      - minecraft-plugins:/opt/minecraft/plugins
-      - minecraft-data:/opt/minecraft/data
-      - minecraft-logs:/opt/minecraft/logs
+      - config:/opt/minecraft/config
+      - worlds:/opt/minecraft/worlds
+      - plugins:/opt/minecraft/plugins
+      - data:/opt/minecraft/data
+      - logs:/opt/minecraft/logs
+
+  db:
+    image: mariadb
+    container_name: minecraft-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: minecraft
+      MYSQL_HOST: localhost
+    networks:
+      - minecraft
+    volumes: 
+     - db:/var/lib/mysql
 
 volumes:
-  minecraft-config: {}
-  minecraft-worlds: {}
-  minecraft-plugins: {}
-  minecraft-data: {}
-  minecraft-logs: {}
+  config: {}
+  worlds: {}
+  plugins: {}
+  data: {}
+  logs: {}
+  db: {}
 
 networks:
   minecraft: {}

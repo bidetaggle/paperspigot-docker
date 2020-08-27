@@ -2,3 +2,7 @@
 ### IntelliJ ###
 ################
 .idea
+
+volumes
+snapshots
+server-root
