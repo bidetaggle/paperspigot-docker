@@ -21,11 +21,8 @@ services:
       - logs:/opt/minecraft/logs
 
   db:
-    container_name: minecraft-db
     image: mariadb
-    #build:
-    #  context: .
-    #  dockerfile: Dockerfile.db
+    container_name: minecraft-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root

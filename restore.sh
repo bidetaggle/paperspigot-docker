@@ -10,7 +10,7 @@ DB_PWD=root
 VOLUMES=(config worlds plugins data logs)
 
 function display_usage {
-    echo "Usage: ./restore.sh <Days(number)|confirm|cancel|status>" >&2
+    echo "Usage: ./restore.sh <Days(number)|confirm|cancel|status|> | <*.sql>" >&2
     echo "Exemples:"
     echo " - restore from yesterday and confirm:"
     echo "    ./restore.sh 1"
@@ -18,6 +18,9 @@ function display_usage {
     echo " - restore from 2 days ago but you changed your mind and cancel:"
     echo "    ./restore.sh 2"
     echo "    ./restore.sh cancel"
+    echo ""
+    echo "Import a local sql file to the running $CONTAINER_NAME container:"
+    echo "./restore.sh your-file.sql"
 }
 
 function print_error {
@@ -222,6 +225,18 @@ function confirm {
     docker-compose up -d
 }
 
+function migrate_db {
+    sql_file=$1
+
+    print_info "Cleaning up db..."
+    docker exec $CONTAINER_NAME mysql -u $DB_USER --password=$DB_PWD $DB_NAME -e "DROP DATABASE minecraft; CREATE DATABASE minecraft"
+    assess $?
+
+    print_info "Import $sql_file (host) to minecraft container"
+    docker exec -i $CONTAINER_NAME mysql -u $DB_USER --password=$DB_PWD $DB_NAME < $sql_file
+    assess $?
+}
+
 # Args match
 if [[ $1 = 'status' ]]; then
     get_status
@@ -231,6 +246,8 @@ elif [[ $1 = 'cancel' ]]; then
     cancel
 elif [[ $1 = 'confirm' ]]; then
     confirm
+elif [[ "$1" == *\.sql ]]; then
+    migrate_db $1
 else
     print_error "I don't understand :s"
     display_usage
