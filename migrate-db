@@ -1,4 +1,0 @@
-#!/bin/bash
-
-docker exec minecraft-db mysql -u root --password=root minecraft -e "DROP DATABASE minecraft; CREATE DATABASE minecraft"
-docker exec -i minecraft-db mysql -u root --password=root minecraft < $1
