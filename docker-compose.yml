@@ -23,6 +23,9 @@ services:
   db:
     container_name: minecraft-db
     image: mariadb
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile.db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -31,7 +34,7 @@ services:
     networks:
       - minecraft
     volumes: 
-     - db:/var/lib/minecraftdb
+     - db:/var/lib/mysql
 
 volumes:
   config: {}

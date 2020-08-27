@@ -1,0 +1,10 @@
+# import db inside container:
+
+pv /minecraft.sql | mysql -u root --password=root minecraft
+
+mysql -u root --password=root minecraft < /minecraft.sql
+
+
+# export db inside container
+
+?

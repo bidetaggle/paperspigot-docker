@@ -33,8 +33,8 @@ function snapshot_server {
 }
 
 function db_backup {
-    echo "Starting database backup..."
-    docker exec $CONTAINER_NAME mysqldump --password=$DB_PWD $DB_NAME > $SNAPSHOTS_DIRECTORY/$DATE/db.sql
+    echo "Exporting database from $CONTAINER_NAME to $SNAPSHOTS_DIRECTORY/$DATE/db.sql ..."
+    docker exec -i $CONTAINER_NAME mysqldump --password=$DB_PWD $DB_NAME > $SNAPSHOTS_DIRECTORY/$DATE/db.sql
     
     if [ $? -eq 0 ]; then
         echo "Done."
@@ -51,10 +51,23 @@ function rolling_backups {
     if [ ${#NB_SNAPSHOTS[@]} -gt $NB_MAX_SNAPSHOTS ] ; then
         echo "Deleting the oldest snapshot"
         rm -rf $SNAPSHOTS_DIRECTORY/$(ls -F $SNAPSHOTS_DIRECTORY | head -n 1)
+    else
+        echo "The number of snapshots does not exceed the maximum set (${#NB_SNAPSHOTS[@]}/$NB_MAX_SNAPSHOTS). Rolling nothing."
+    fi
+}
+
+function on_exit {
+    if [ ! $? -eq 0 ]; then
+        echo "Something went wrong :( , cleaning up."
+        rm -rf $SNAPSHOTS_DIRECTORY/$(ls -F $SNAPSHOTS_DIRECTORY | head -n 1)
+    else
+        echo "Done."
     fi
 }
 
 mkdir $SNAPSHOTS_DIRECTORY/$DATE
+trap on_exit EXIT
+
 db_backup
 snapshot_server
 rolling_backups
