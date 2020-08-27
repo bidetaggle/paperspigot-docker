@@ -117,6 +117,29 @@ networks:
 
 ```
 
+# Snapshot tools
+
+As MC admins, we know how important it is to backup restart regularly the server and backup the worlds.
+`cron.sh` has been written to fully fullfil this purpose, __database and all volumes content included__. 
+It makes a full snapshot and remove the oldest one to always keep the last 2 snapshots. This value is set line 4 at `NB_MAX_SNAPSHOTS=2` and can be changed to match your needs
+You now can decide the snapshot frequency with peace in mind :) 
+
+I personaly recommend to make one snapshot a day.
+
+Along with this backup cron script, you shall use `restore.sh` to manipulate safely your snapshots:
+
+Usage: ./restore.sh <Days(number)|confirm|cancel|status|> | <*.sql>
+Exemples:
+ - restore from yesterday and confirm:
+    ./restore.sh 1
+    ./restore.sh confirm
+ - restore from 2 days ago but you changed your mind and cancel:
+    ./restore.sh 2
+    ./restore.sh cancel
+
+Import a local sql file to the running minecraft-db container:
+./restore.sh your-file.sql
+
 # See Also
 - [Docker CLI Reference: docker cp](https://docs.docker.com/engine/reference/commandline/cp/) - Copy files/folders between 
 a container and the local filesystem. Useful if you want to add new plugins, change settings, etc.
