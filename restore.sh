@@ -5,6 +5,7 @@ SNAPSHOTS_DIRECTORY=snapshots
 PROD_DIRECTORY=/var/lib/docker/volumes/paperspigot-docker
 CONTAINER_NAME=minecraft-db
 DB_NAME=minecraft
+DB_USER=root
 DB_PWD=root
 VOLUMES=(config worlds plugins data logs)
 
@@ -39,14 +40,26 @@ function get_status {
     fi
 }
 
-function restore_db {
-    To_restore=$1
+function assess {
+    command_result=$1
+    if [ $command_result -eq 0 ]; then
+        print_info "Done."
+    else
+        print_error "Failed :("
+        exit 1
+    fi
+}
+
+function restore_db_from {
+    sql_path=${SNAPSHOTS_DIRECTORY}/${1}db.sql
     
-    print_info "Import db from $SNAPSHOTS_DIRECTORY/${To_restore}db.sql..."
-    
-    docker cp $SNAPSHOTS_DIRECTORY/$To_restore/db.sql $CONTAINER_NAME:/var/lib/minecraftdb/
+    print_info "Cleaning up db..." 
     docker exec $CONTAINER_NAME mysql --password=$DB_PWD -e "DROP DATABASE $DB_NAME; CREATE DATABASE $DB_NAME" $DB_NAME
-    docker exec $CONTAINER_NAME mysqlimport --password=$DB_PWD $DB_NAME /var/lib/minecraftdb/db.sql
+    assess $?
+
+    print_info "Import db from ${sql_path} ..."
+    docker exec -i $CONTAINER_NAME mysql --password=$DB_PWD -u $DB_USER $DB_NAME < ${sql_path}
+    assess $?
 }
 
 function restore {
@@ -71,19 +84,9 @@ function restore {
         print_info "Export db..."
         mkdir $SNAPSHOTS_DIRECTORY/${date}_original
         docker exec $CONTAINER_NAME mysqldump --password=$DB_PWD $DB_NAME > $SNAPSHOTS_DIRECTORY/${date}_original/db.sql
-        
-        if [ ! $? -eq 0 ]; then
-            exit 1
-        fi
+        assess $?
 
-        restore_db $to_restore
-
-        if [ $? -eq 0 ]; then
-            print_info "Done."
-        else
-            print_error "Error: Database moving failed."
-            exit 1
-        fi
+        restore_db_from $to_restore
 
         docker-compose down
 
@@ -101,7 +104,7 @@ function restore {
         #mv /var/lib/docker/volumes/paperspigot-docker_server/_data/* $SNAPSHOTS_DIRECTORY/${date}_original
     else
         print_warning "Restoration already initialized."
-        restore_db $to_restore
+        restore_db_from $to_restore
         docker-compose down
     fi
 
@@ -159,6 +162,8 @@ function cancel {
         exit 1
     fi
 
+    restore_db_from *_original/
+
     docker-compose down
 
     print_info "Bringing back the original directory..."
@@ -212,13 +217,9 @@ function confirm {
 
     print_info "Cleaning up original directory..."
     rm -rf $SNAPSHOTS_DIRECTORY/*_original
-
-    if [ $? -eq 0 ]; then
-        print_info "Done."
-        docker-compose up -d
-    else
-        print_error "Something wrong happened :("
-    fi
+    assess $?
+    
+    docker-compose up -d
 }
 
 # Args match

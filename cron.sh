@@ -65,7 +65,7 @@ function on_exit {
     fi
 }
 
-mkdir $SNAPSHOTS_DIRECTORY/$DATE
+mkdir -p $SNAPSHOTS_DIRECTORY/$DATE
 trap on_exit EXIT
 
 db_backup
