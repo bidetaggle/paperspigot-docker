@@ -129,16 +129,18 @@ I personaly recommend to make one snapshot a day.
 Along with this backup cron script, you shall use `restore.sh` to manipulate safely your snapshots:
 
 Usage: ./restore.sh <Days(number)|confirm|cancel|status|> | <*.sql>
-Exemples:
- - restore from yesterday and confirm:
-    ./restore.sh 1
-    ./restore.sh confirm
- - restore from 2 days ago but you changed your mind and cancel:
-    ./restore.sh 2
-    ./restore.sh cancel
 
-Import a local sql file to the running minecraft-db container:
-./restore.sh your-file.sql
+## Exemples:
+### Restore from yesterday'snapshot and confirm:
+`$ ./restore.sh 1`
+`$ ./restore.sh confirm`
+
+### Restore from 2 days ago'snapshot but you changed your mind and cancel:
+`$ ./restore.sh 2`
+`$ ./restore.sh cancel`
+
+You can also import an arbitrary sql file on your host system to the running minecraft-db container:
+`$ ./restore.sh your-file.sql`
 
 # See Also
 - [Docker CLI Reference: docker cp](https://docs.docker.com/engine/reference/commandline/cp/) - Copy files/folders between 
