@@ -7,7 +7,7 @@ NB_MAX_SNAPSHOTS=2
 SNAPSHOTS_DIRECTORY=snapshots
 PROD_DIR_PREFIX=/var/lib/docker/volumes/paperspigot-docker
 CONTAINER_NAME=minecraft-db
-DB_NAME=minecraft_267223
+DB_NAME=minecraft
 DB_PWD=root
 VOLUMES=(config worlds plugins data logs)
 
@@ -49,7 +49,7 @@ function rolling_backups {
     NB_SNAPSHOTS=($SNAPSHOTS_DIRECTORY/*)
 
     if [ ${#NB_SNAPSHOTS[@]} -gt $NB_MAX_SNAPSHOTS ] ; then
-        echo "fdsfds"
+        echo "Deleting the oldest snapshot"
         rm -rf $SNAPSHOTS_DIRECTORY/$(ls -F $SNAPSHOTS_DIRECTORY | head -n 1)
     fi
 }

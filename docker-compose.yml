@@ -26,7 +26,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: minecraft_267223
+      MYSQL_DATABASE: minecraft
       MYSQL_HOST: localhost
     networks:
       - minecraft
