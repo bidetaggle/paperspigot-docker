@@ -143,4 +143,3 @@ ENTRYPOINT [ "./docker-entrypoint.sh" ]
 
 # Run Command
 CMD [ "serve" ]
-
