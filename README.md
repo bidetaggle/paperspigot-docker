@@ -132,12 +132,12 @@ Usage: ./restore.sh <Days(number)|confirm|cancel|status|> | <*.sql>
 
 ## Exemples:
 ### Restore from yesterday'snapshot and confirm:
-`$ ./restore.sh 1`
-`$ ./restore.sh confirm`
+1. `$ ./restore.sh 1`
+2. `$ ./restore.sh confirm`
 
 ### Restore from 2 days ago'snapshot but you changed your mind and cancel:
-`$ ./restore.sh 2`
-`$ ./restore.sh cancel`
+1. `$ ./restore.sh 2`
+2. `$ ./restore.sh cancel`
 
 You can also import an arbitrary sql file on your host system to the running minecraft-db container:
 `$ ./restore.sh your-file.sql`
