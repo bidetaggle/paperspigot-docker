@@ -7,8 +7,6 @@ services:
     stdin_open: true
     tty: true
     restart: always
-    environment:
-      - SHELL=/bin/bash
     networks:
       - minecraft
     ports:

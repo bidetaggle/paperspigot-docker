@@ -104,7 +104,6 @@ function restore {
                 print_info "OK."
             fi
         done
-        #mv /var/lib/docker/volumes/paperspigot-docker_server/_data/* $SNAPSHOTS_DIRECTORY/${date}_original
     else
         print_warning "Restoration already initialized."
         restore_db_from $to_restore
@@ -135,8 +134,6 @@ function restore {
             print_info "OK."
         fi
     done
-    #rm -rf $PROD_DIRECTORY/*
-    #cp -r -a $SNAPSHOTS_DIRECTORY/$to_restore/* $PROD_DIRECTORY
 
     if [ $? -eq 0 ]; then
         print_info "Done."
@@ -191,8 +188,6 @@ function cancel {
              print_error "Something wrong happened :s"
         fi
     done
-    #rm -rf $PROD_DIRECTORY/*
-    #cp -r -a $SNAPSHOTS_DIRECTORY/*_original/* $PROD_DIRECTORY
     
     if [ $? -eq 0 ]; then
         print_info "Cleaning up..."
@@ -226,6 +221,7 @@ function confirm {
 }
 
 function migrate_db {
+    # check for restoration status
     if [ -d $SNAPSHOTS_DIRECTORY/*_original ]; then
         print_error "Snapshot restoration started already."
         print_info "Please confirm or cancel to properly finish the restoration."
