@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASH_NAME="./restore.sh"
-SNAPSHOTS_DIRECTORY=snapshots
+SNAPSHOTS_DIRECTORY=.snapshots
 PROD_DIRECTORY=/var/lib/docker/volumes/paperspigot-docker
 CONTAINER_NAME=minecraft-db
 DB_NAME=minecraft
@@ -226,6 +226,14 @@ function confirm {
 }
 
 function migrate_db {
+    if [ -d $SNAPSHOTS_DIRECTORY/*_original ]; then
+        print_error "Snapshot restoration started already."
+        print_info "Please confirm or cancel to properly finish the restoration."
+        echo ""
+        display_usage
+        exit 1
+    fi
+
     sql_file=$1
 
     print_info "Cleaning up db..."

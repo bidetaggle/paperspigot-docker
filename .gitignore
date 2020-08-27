@@ -4,4 +4,4 @@
 .idea
 
 volumes
-snapshots
+.snapshots

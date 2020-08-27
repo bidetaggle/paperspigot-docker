@@ -4,7 +4,7 @@
 NB_MAX_SNAPSHOTS=2
 
 # Constants
-SNAPSHOTS_DIRECTORY=snapshots
+SNAPSHOTS_DIRECTORY=.snapshots
 PROD_DIR_PREFIX=/var/lib/docker/volumes/paperspigot-docker
 CONTAINER_NAME=minecraft-db
 DB_NAME=minecraft
