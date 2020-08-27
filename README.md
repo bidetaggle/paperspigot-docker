@@ -121,4 +121,4 @@ networks:
 - [Docker CLI Reference: docker cp](https://docs.docker.com/engine/reference/commandline/cp/) - Copy files/folders between 
 a container and the local filesystem. Useful if you want to add new plugins, change settings, etc.
 - [Docker CLI Reference: docker attach](https://docs.docker.com/engine/reference/commandline/attach/) - Attach to a
-running container. Will attach to the server's console directly, allowing you to issue commands.
+running container. Will attach to the server's console directly, allowing you to issue commands. 
