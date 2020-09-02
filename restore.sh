@@ -112,21 +112,15 @@ function restore {
 
     for volume in ${VOLUMES[*]}; do
 
-        print_info "Cleaning up $volume volume..."   
-        
+        print_info "Cleaning up ${volume} content..."
         rm -rf ${PROD_DIRECTORY}_${volume}/_data/*
-        if [ ! $? -eq 0 ]; then
-            print_error "Error when copying removing ${PROD_DIRECTORY}_${volume}/_data/*"
-            exit 1
-        else
-            print_info "OK."
-        fi
-        
+        assess $?
+
         print_info "Copying ${volume}..."
        
-        cp -r -a $SNAPSHOTS_DIRECTORY/$to_restore/${volume}/* /var/lib/docker/volumes/paperspigot-docker_${volume}/_data
+        cp -r -a $SNAPSHOTS_DIRECTORY/${to_restore}${volume}/* /var/lib/docker/volumes/paperspigot-docker_${volume}/_data
         if [ ! $? -eq 0 ]; then
-            print_error "Error when copying $SNAPSHOTS_DIRECTORY/$to_restore/${volume} to /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/"
+            print_error "Error when copying $SNAPSHOTS_DIRECTORY/${to_restore}${volume} to /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/"
             exit 1
         else
             chown 1000:1000 /var/lib/docker/volumes/paperspigot-docker_${volume}/_data -R
@@ -170,36 +164,26 @@ function cancel {
     for volume in ${VOLUMES[*]}; do
 
         print_info "Deleting ${volume} content..."
-        
         rm -rf ${PROD_DIRECTORY}_${volume}/_data/*
-        if [ $? -eq 0 ]; then
-            print_info "OK."
-        else
-            print_error "Something wrong happened :s"
-        fi
+        assess $?
 
         print_info "Bringing back original ${volume}"
+        cp -r -a $SNAPSHOTS_DIRECTORY/original/${volume}/* /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/
+        assess $?
         
-        cp -r -a $SNAPSHOTS_DIRECTORY/original/* /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/
-        if [ $? -eq 0 ]; then
-            chown 1000:1000 /var/lib/docker/volumes/paperspigot-docker_${volume}/_data -R
-            print_info "OK."
-        else
-            print_error "Something wrong happened :s"
-        fi
+        print_info "Set ownership to 1000:1000"
+        chown 1000:1000 /var/lib/docker/volumes/paperspigot-docker_${volume}/_data -R
+        assess $?
     done
-    
+     
     if [ $? -eq 0 ]; then
         print_info "Cleaning up..."
         rm -rf $SNAPSHOTS_DIRECTORY/original
-        if [ $? -eq 0 ]; then
-            print_info "Done."
-            docker-compose up -d
-        else
-            print_error "Something wrong happened."
-        fi
+        assess $?
+
+        docker-compose up -d
     else
-        print_error "Something wrong happened :("
+        print_error "Aborted."
     fi
 }
 
