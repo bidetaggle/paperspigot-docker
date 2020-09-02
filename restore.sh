@@ -161,8 +161,6 @@ function cancel {
         exit 1
     fi
 
-    print_title "Database restoration cancellation"
-
     restore_db_from original/
 
     docker-compose down
