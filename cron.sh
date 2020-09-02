@@ -24,6 +24,7 @@ function snapshot_server {
             echo "Error when copying the volume ${volume}"
             exit 1
         else
+            chown 1000:1000 ${PROD_DIR_PREFIX}_${volume}/_data -R
             echo "OK."
         fi
     done

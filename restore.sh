@@ -36,7 +36,7 @@ function print_warning {
 }
 
 function get_status {
-    if [ -d $SNAPSHOTS_DIRECTORY/*_original ]; then
+    if [ -d $SNAPSHOTS_DIRECTORY/original ]; then
         echo "Restoration initialized. Please confirm or cancel to finish restoration properly."
     else
         echo "Ready to start restoration"
@@ -69,7 +69,7 @@ function restore {
     ls_snapshots=($SNAPSHOTS_DIRECTORY/*)
     nb_snapshots=${#ls_snapshots[@]}
 
-    if [ -d $SNAPSHOTS_DIRECTORY/*_original ]; then
+    if [ -d $SNAPSHOTS_DIRECTORY/original ]; then
         nb_snapshots=$((nb_snapshots - 1))
     fi
 
@@ -81,12 +81,12 @@ function restore {
     to_restore=$(ls -F $SNAPSHOTS_DIRECTORY | tail -n $(($1 + 1)) | head -n 1)
     date=$(date '+%Y-%m-%d-%Hh%Mm%S')
 
-    if [ ! -d $SNAPSHOTS_DIRECTORY/*_original ]; then
+    if [ ! -d $SNAPSHOTS_DIRECTORY/original ]; then
         print_warning "Initializing restoration process..."
         
         print_info "Export db..."
-        mkdir $SNAPSHOTS_DIRECTORY/${date}_original
-        docker exec $CONTAINER_NAME mysqldump --password=$DB_PWD $DB_NAME > $SNAPSHOTS_DIRECTORY/${date}_original/db.sql
+        mkdir $SNAPSHOTS_DIRECTORY/original
+        docker exec $CONTAINER_NAME mysqldump --password=$DB_PWD $DB_NAME > $SNAPSHOTS_DIRECTORY/original/db.sql
         assess $?
 
         restore_db_from $to_restore
@@ -94,15 +94,13 @@ function restore {
         docker-compose down
 
         for volume in ${VOLUMES[*]}; do
-            print_info "Moving ${volume} out of the way..."
-            mkdir $SNAPSHOTS_DIRECTORY/${date}_original/$volume
-            mv /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/* $SNAPSHOTS_DIRECTORY/${date}_original/${volume}
-            if [ ! $? -eq 0 ]; then
-                print_error "Error when moving this Docker volume to $SNAPSHOTS_DIRECTORY/${date}_original/${volume}"
-                exit 1
-            else
-                print_info "OK."
-            fi
+            print_info "Creating $SNAPSHOTS_DIRECTORY/original/${volume}..."
+            mkdir $SNAPSHOTS_DIRECTORY/original/${volume}
+            assess $?
+            
+            print_info "Moving /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/* -> $SNAPSHOTS_DIRECTORY/original/${volume}/"
+            mv /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/* $SNAPSHOTS_DIRECTORY/original/${volume}/
+            assess $?
         done
     else
         print_warning "Restoration already initialized."
@@ -118,7 +116,7 @@ function restore {
         
         rm -rf ${PROD_DIRECTORY}_${volume}/_data/*
         if [ ! $? -eq 0 ]; then
-            print_error "Error when copying $SNAPSHOTS_DIRECTORY/$to_restore/${volume} to /var/lib/docker/volumes/paperspigot-docker  _${volume}/_data/"
+            print_error "Error when copying removing ${PROD_DIRECTORY}_${volume}/_data/*"
             exit 1
         else
             print_info "OK."
@@ -131,6 +129,7 @@ function restore {
             print_error "Error when copying $SNAPSHOTS_DIRECTORY/$to_restore/${volume} to /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/"
             exit 1
         else
+            chown 1000:1000 /var/lib/docker/volumes/paperspigot-docker_${volume}/_data -R
             print_info "OK."
         fi
     done
@@ -156,13 +155,13 @@ function restore {
 
 function cancel {
     # check for restoration status
-    if [ ! -d $SNAPSHOTS_DIRECTORY/*_original ]; then
+    if [ ! -d $SNAPSHOTS_DIRECTORY/original ]; then
         print_error "There is nothing to cancel."
         display_usage
         exit 1
     fi
 
-    restore_db_from *_original/
+    restore_db_from original/
 
     docker-compose down
 
@@ -181,17 +180,18 @@ function cancel {
 
         print_info "Bringing back original ${volume}"
         
-        cp -r -a $SNAPSHOTS_DIRECTORY/*_original/* /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/
+        cp -r -a $SNAPSHOTS_DIRECTORY/original/* /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/
         if [ $? -eq 0 ]; then
-             print_info "OK."
+            chown 1000:1000 /var/lib/docker/volumes/paperspigot-docker_${volume}/_data -R
+            print_info "OK."
         else
-             print_error "Something wrong happened :s"
+            print_error "Something wrong happened :s"
         fi
     done
     
     if [ $? -eq 0 ]; then
         print_info "Cleaning up..."
-        rm -rf $SNAPSHOTS_DIRECTORY/*_original
+        rm -rf $SNAPSHOTS_DIRECTORY/original
         if [ $? -eq 0 ]; then
             print_info "Done."
             docker-compose up -d
@@ -205,24 +205,20 @@ function cancel {
 
 function confirm {
     # check for Restoration status
-    if [ ! -d $SNAPSHOTS_DIRECTORY/*_original ]; then
+    if [ ! -d $SNAPSHOTS_DIRECTORY/original ]; then
         print_error "There is nothing to confirm."
         display_usage
         exit 1
     fi
 
-    docker-compose down
-
     print_info "Cleaning up original directory..."
-    rm -rf $SNAPSHOTS_DIRECTORY/*_original
+    rm -rf $SNAPSHOTS_DIRECTORY/original
     assess $?
-    
-    docker-compose up -d
 }
 
 function migrate_db {
     # check for restoration status
-    if [ -d $SNAPSHOTS_DIRECTORY/*_original ]; then
+    if [ -d $SNAPSHOTS_DIRECTORY/original ]; then
         print_error "Snapshot restoration started already."
         print_info "Please confirm or cancel to properly finish the restoration."
         echo ""
