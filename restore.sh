@@ -139,7 +139,7 @@ function restore {
         docker-compose up -d
 
         echo ""
-        echo -e "\e[93mServer is now running on snapshot $to_restore [$1 day(s) ago]"
+        echo -e "\e[96mServer is now running on snapshot $to_restore [$1 day(s) ago]"
         echo ""
         print_end "To finalize restoration, please launch one of the following commands:"
         print_end "$ $BASH_NAME confirm"
