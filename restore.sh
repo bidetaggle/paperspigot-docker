@@ -28,11 +28,16 @@ function print_error {
     echo -e "\e[91m${1}\e[39m"
     echo ""
 }
-function print_info {
-    echo -e "\e[36m${1}\e[39m"
+function print_info { 
+    echo -e "\e[94m${1}\e[39m" 
 }
-function print_warning {
-    echo -e "\e[93m${1}\e[39m"
+function print_title { 
+    echo ""
+    echo -e "\e[36m [ ${1} ] \e[39m" 
+    echo ""
+}
+function print_end {
+    echo -e "\e[93m${1}\e[39m" 
 }
 
 function get_status {
@@ -46,7 +51,7 @@ function get_status {
 function assess {
     command_result=$1
     if [ $command_result -eq 0 ]; then
-        print_info "Done."
+        echo -e "\e[34mDone\e[39m."
     else
         print_error "Failed :("
         exit 1
@@ -54,13 +59,15 @@ function assess {
 }
 
 function restore_db_from {
+    print_title "Database restoration"
+
     sql_path=${SNAPSHOTS_DIRECTORY}/${1}db.sql
     
-    print_info "Cleaning up db..." 
+    print_info "Cleaning up database..."
     docker exec $CONTAINER_NAME mysql --password=$DB_PWD -e "DROP DATABASE $DB_NAME; CREATE DATABASE $DB_NAME" $DB_NAME
     assess $?
 
-    print_info "Import db from ${sql_path} ..."
+    print_info "Importing ${sql_path} to the database..."
     docker exec -i $CONTAINER_NAME mysql --password=$DB_PWD -u $DB_USER $DB_NAME < ${sql_path}
     assess $?
 }
@@ -82,17 +89,21 @@ function restore {
     date=$(date '+%Y-%m-%d-%Hh%Mm%S')
 
     if [ ! -d $SNAPSHOTS_DIRECTORY/original ]; then
-        print_warning "Initializing restoration process..."
+        print_title "Restoration initialization"
         
-        print_info "Export db..."
+        print_info "Create $SNAPSHOTS_DIRECTORY/original directory"
         mkdir $SNAPSHOTS_DIRECTORY/original
+        assess $?
+
+        print_info "Dump sql file from db container"
         docker exec $CONTAINER_NAME mysqldump --password=$DB_PWD $DB_NAME > $SNAPSHOTS_DIRECTORY/original/db.sql
         assess $?
 
         restore_db_from $to_restore
-
         docker-compose down
 
+        print_title "Populate $SNAPSHOTS_DIRECTORY/original directory"
+        
         for volume in ${VOLUMES[*]}; do
             print_info "Creating $SNAPSHOTS_DIRECTORY/original/${volume}..."
             mkdir $SNAPSHOTS_DIRECTORY/original/${volume}
@@ -103,12 +114,11 @@ function restore {
             assess $?
         done
     else
-        print_warning "Restoration already initialized."
         restore_db_from $to_restore
         docker-compose down
     fi
 
-    print_info "Copying ./$SNAPSHOTS_DIRECTORY/$to_restore content ..."
+    print_title "Server files restoration"
 
     for volume in ${VOLUMES[*]}; do
 
@@ -117,30 +127,26 @@ function restore {
         assess $?
 
         print_info "Copying ${volume}..."
-       
         cp -r -a $SNAPSHOTS_DIRECTORY/${to_restore}${volume}/* /var/lib/docker/volumes/paperspigot-docker_${volume}/_data
-        if [ ! $? -eq 0 ]; then
-            print_error "Error when copying $SNAPSHOTS_DIRECTORY/${to_restore}${volume} to /var/lib/docker/volumes/paperspigot-docker_${volume}/_data/"
-            exit 1
-        else
-            chown 1000:1000 /var/lib/docker/volumes/paperspigot-docker_${volume}/_data -R
-            print_info "OK."
-        fi
+        assess $?
+
+        print_info "Set ownership to 1000:1000"
+        chown 1000:1000 /var/lib/docker/volumes/paperspigot-docker_${volume}/_data -R
+        assess $?
     done
 
     if [ $? -eq 0 ]; then
-        print_info "Done."
         docker-compose up -d
 
         echo ""
-        print_info "Server is now running on snapshot $to_restore [$1 day(s) ago]"
+        echo -e "\e[93mServer is now running on snapshot $to_restore [$1 day(s) ago]"
         echo ""
-        print_info "To finalize restoration, please launch one of the following commands:"
-        print_info "$ $BASH_NAME confirm"
-        print_info "$ $BASH_NAME cancel"
+        print_end "To finalize restoration, please launch one of the following commands:"
+        print_end "$ $BASH_NAME confirm"
+        print_end "$ $BASH_NAME cancel"
         echo ""
-        print_info "You can keep trying other snapshots before finalizing the restoration:"
-        print_info "$ $BASH_NAME <day(s) ago>"
+        print_end "You can keep trying other snapshots before finalizing the restoration:"
+        print_end "$ $BASH_NAME <day(s) ago>"
         echo ""
     else
         print_error "Something wrong happened :("
@@ -155,11 +161,13 @@ function cancel {
         exit 1
     fi
 
+    print_title "Database restoration cancellation"
+
     restore_db_from original/
 
     docker-compose down
 
-    print_info "Bringing back the original directory..."
+    print_title "Server files restoration cancellation"
 
     for volume in ${VOLUMES[*]}; do
 
